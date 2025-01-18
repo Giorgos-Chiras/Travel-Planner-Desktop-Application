@@ -1,3 +1,6 @@
 requests~=2.32.3
 darkdetect~=0.8.0
 pywinstyles~=1.8
+amadeus~=11.0.0
+
+python-decouple~=3.8
