@@ -1,6 +1,5 @@
 import csv
 
-
 def flight_code_to_name(airport_code):
    with open('../resources/airports.csv', mode='r', encoding='utf-8') as file:
        csvFile = csv.DictReader(file)

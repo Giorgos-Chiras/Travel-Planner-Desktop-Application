@@ -28,7 +28,6 @@ def authorize_connection():
         token=response.json()["access_token"]
         return token
 
-
     return None
 
 
@@ -45,6 +44,7 @@ def get_flight_info(origin, destination, departure_date, adults):
     headers = {
         "Authorization": f"Bearer {token}"
         }
+
 
     payload = {
         "originDestinations": [
@@ -75,7 +75,7 @@ def get_flight_info(origin, destination, departure_date, adults):
         if data["data"] and len(data["data"])>0:
             #Retireve all flights
             for flight in data["data"]:
-                #Geth the price
+                #Get the price
                 price = flight["price"]["total"]
                 itinerary=flight["itineraries"][0]
 
@@ -87,20 +87,22 @@ def get_flight_info(origin, destination, departure_date, adults):
                 for segment in itinerary["segments"]:
 
                     #Retireve and print all flight information
-                    flight_number = segment["carrierCode"] + segment["number"]
-
                     origin = flight_code_to_name(segment["departure"]["iataCode"])
                     destination = flight_code_to_name(segment["arrival"]["iataCode"])
 
+                    direction=f"{origin} -> {destination}"
+
+                    flight_number = segment["carrierCode"] + segment["number"]
+                    #Retrieve Times
                     departure=segment["departure"]["at"]
                     arrival=segment["arrival"]["at"]
 
                     #Print the info for each flight
                     print(f"Flight Segment: {flight_number}")
-                    print(f"{origin} -> {destination}")
+                    print(f"{direction}")
                     print(f"Departure Date and Time: {departure} ")
                     print(f"Arrival Date and Time: {arrival} ")
-                print(f"Price: {price}")
+                print(f"Price: €{price}")
                 print("")
         #When no error are found
         else:
