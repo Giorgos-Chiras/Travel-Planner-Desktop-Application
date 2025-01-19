@@ -1,7 +1,8 @@
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, CENTER
 import sv_ttk
 import darkdetect
+from threading import Thread
 
 from api_clients.flight_search_api import get_flight_info
 from dark_titlebar import apply_theme_to_titlebar
@@ -78,13 +79,11 @@ class FlightOfferPage(tk.Frame):
         super().__init__(parent)
         self.controller=controller
 
-        self.route_label = tk.Label(self, text="")
-        self.route_label.place(anchor="center")
-        self.route_label.pack(pady=20)
+        self.route_label = tk.Label(self, text="Your route text")
+        self.route_label.pack(pady=20, anchor="center")
 
-        self.flights_label = tk.Label(self, text="")
-        self.flights_label.place(anchor='center')
-        self.flights_label.pack(pady=20)
+        self.flights_label = tk.Label(self, text="Your flight information")
+        self.flights_label.pack(pady=20, anchor="center")
 
         ttk.Button(
             self,
@@ -93,7 +92,7 @@ class FlightOfferPage(tk.Frame):
         ).pack(pady=10)
 
     def tkraise(self,*args, **kwargs):
-        """Overload tkraise funnction to retrieve shared data"""
+        """Overload tkraise function to retrieve shared data"""
         origin=self.controller.shared_data.get("departure")
         destination=self.controller.shared_data.get("destination")
         self.route_label.config(text=f"Flights from {flight_code_to_name(origin)} to {flight_code_to_name(destination)}")

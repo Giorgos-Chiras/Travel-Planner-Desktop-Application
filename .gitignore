@@ -312,4 +312,7 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
+#Personal note file, used to document development proccess
+Travel Planner.txt
+
 # End of https://www.toptal.com/developers/gitignore/api/pycharm,windows,python

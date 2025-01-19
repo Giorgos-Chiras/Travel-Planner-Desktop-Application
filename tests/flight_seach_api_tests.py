@@ -6,7 +6,7 @@ try:
     departure_date=input("Give the departure date (YYYY-MM-DD): ")
     adults=int(input("Give the number of adults: ") )
     print("")
-    get_flight_info(origin, destination, departure_date, adults)
+    print(get_flight_info(origin, destination, departure_date, adults))
 
 except Exception as e:
     print(e)
