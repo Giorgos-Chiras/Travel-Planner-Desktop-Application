@@ -18,7 +18,7 @@
 ## Technologies Used
 
 - **Programming Language**: Python
-- **GUI Library**: Tkinter (Sun Valley Theme)
+- **GUI Library**: Tkinter (with the [Sun Valley Theme](https://github.com/rdbende/Sun-Valley-ttk-theme))
 - **Flight Search API**: [Amadeus API](https://developers.amadeus.com/)
 
 ---
