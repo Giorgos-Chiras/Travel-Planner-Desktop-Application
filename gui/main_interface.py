@@ -5,6 +5,7 @@ import darkdetect
 
 from api_clients.flight_search_api import get_flight_info
 from dark_titlebar import apply_theme_to_titlebar
+from data_coversions.fligth_conversions import flight_code_to_name
 
 
 class travel_planner_app(tk.Tk):
@@ -16,6 +17,7 @@ class travel_planner_app(tk.Tk):
         self.container=tk.Frame(self)
         self.container.pack(fill="both", expand=True)
 
+        self.shared_data={}
         self.pages={}
         for PageClass in (InputPage,FlightOfferPage):
             page=PageClass(self.container,self)
@@ -41,21 +43,34 @@ class InputPage(tk.Frame):
         label = tk.Label(self, text="Origin")
         label.pack()
 
-        departure = tk.Entry(self)
-        departure.pack(padx=10)
+        self.departure = tk.Entry(self)
+        self.departure.pack(padx=10)
+
 
 
         label = tk.Label(self, text="Destination")
         label.pack()
 
-        destination = tk.Entry(self)
-        destination.pack(padx=10)
+        self.destination = tk.Entry(self)
+        self.destination.pack(padx=10)
+
 
         ttk.Button(self,
                    text="Retrieve Flight Offers",
                    width=20,
-                   command= lambda: self.controller.show_page(FlightOfferPage)
+                   command= self.retrieve_flight_offers
                    ).pack(pady=10)
+
+
+    def retrieve_flight_offers(self):
+
+        departure_info = self.departure.get()
+        destination_info = self.destination.get()
+
+        self.controller.shared_data['departure'] = departure_info
+        self.controller.shared_data['destination'] = destination_info
+
+        self.controller.show_page(FlightOfferPage)
 
 
 class FlightOfferPage(tk.Frame):
@@ -63,13 +78,28 @@ class FlightOfferPage(tk.Frame):
         super().__init__(parent)
         self.controller=controller
 
-        self.output_box = tk.Text(self, wrap="word", font=("Courier", 10))
-        self.output_box.pack(fill="both", expand=True, padx=10, pady=10)
+        self.route_label = tk.Label(self, text="")
+        self.route_label.place(anchor="center")
+        self.route_label.pack(pady=20)
 
+        self.flights_label = tk.Label(self, text="")
+        self.flights_label.place(anchor='center')
+        self.flights_label.pack(pady=20)
 
-    def get_flight_offers(self,origin,destination):
+        ttk.Button(
+            self,
+            text="Go Back",
+            command=lambda: controller.show_page(InputPage)
+        ).pack(pady=10)
 
-        return get_flight_info(origin,destination,"2025-03-17",1)
+    def tkraise(self,*args, **kwargs):
+        """Overload tkraise funnction to retrieve shared data"""
+        origin=self.controller.shared_data.get("departure")
+        destination=self.controller.shared_data.get("destination")
+        self.route_label.config(text=f"Flights from {flight_code_to_name(origin)} to {flight_code_to_name(destination)}")
+        self.flights_label.config(text=f"{get_flight_info(origin, destination, '2025-04-23', 1)}")
+        super().tkraise(*args, **kwargs)
+
 
 
 

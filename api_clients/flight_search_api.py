@@ -69,50 +69,54 @@ def get_flight_info(origin, destination, departure_date, adults):
 
     response=requests.post(flight_search_url, headers=headers, json=payload)
 
-    if response.status_code==200:
-        data=response.json()
-        #Check if flight offers are found
-        if data["data"] and len(data["data"])>0:
-            #Retireve all flights
+    # Initialize an empty string for the output
+    formatted_output = ""
+
+    if response.status_code == 200:
+        data = response.json()
+        # Check if flight offers are found
+        if data["data"] and len(data["data"]) > 0:
+            # Retrieve all flights
             for flight in data["data"]:
-                #Get the price
+                # Get the price
                 price = flight["price"]["total"]
-                itinerary=flight["itineraries"][0]
+                itinerary = flight["itineraries"][0]
 
-                # Check if flight has connections
+                # Check if the flight has connections
                 if len(itinerary["segments"]) > 1:
-                    print("Flight with connections")
+                    formatted_output += "Flight with connections\n"
                 else:
-                    print("Flight without connections")
-                for segment in itinerary["segments"]:
+                    formatted_output += "Flight without connections\n"
 
-                    #Retireve and print all flight information
+                # Process each flight segment
+                for segment in itinerary["segments"]:
+                    # Retrieve flight information
                     origin = flight_code_to_name(segment["departure"]["iataCode"])
                     destination = flight_code_to_name(segment["arrival"]["iataCode"])
-
-                    direction=f"{origin} -> {destination}"
-
+                    direction = f"{origin} -> {destination}"
                     flight_number = segment["carrierCode"] + segment["number"]
-                    #Retrieve Times
-                    departure=segment["departure"]["at"]
-                    arrival=segment["arrival"]["at"]
 
-                    #Print the info for each flight
-                    print(f"Flight Segment: {flight_number}")
-                    print(f"{direction}")
-                    print(f"Departure Date and Time: {departure} ")
-                    print(f"Arrival Date and Time: {arrival} ")
-                print(f"Price: €{price}")
-                print("")
-        #When no error are found
+                    # Retrieve times
+                    departure = segment["departure"]["at"]
+                    arrival = segment["arrival"]["at"]
+
+                    # Append the segment details to the output string
+                    formatted_output += f"Flight Segment: {flight_number}\n"
+                    formatted_output += f"{direction}\n"
+                    formatted_output += f"Departure Date and Time: {departure}\n"
+                    formatted_output += f"Arrival Date and Time: {arrival}\n\n"
+
+                # Append the price
+                formatted_output += f"Price: €{price}\n\n"
         else:
-            print("No flight offers found")
-    elif response.status_code==400:
-        print("Invalid Input")
+            formatted_output += "No flight offers found\n"
+    elif response.status_code == 400:
+        formatted_output += "Invalid Input\n"
     else:
-        print(f"Status Code: {response.status_code}")
-        print(f"Error Details {response.json()}")
-        return
+        formatted_output += f"Status Code: {response.status_code}\n"
+        formatted_output += f"Error Details: {response.json()}\n"
+
+    return formatted_output
 
 
 
