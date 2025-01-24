@@ -2,7 +2,6 @@ import requests
 from decouple import config
 from data_coversions.fligth_conversions import flight_code_to_name
 
-
 #Connects to the API and returns token
 def authorize_connection():
 
@@ -45,7 +44,6 @@ def get_flight_info(origin, destination, departure_date, adults):
         "Authorization": f"Bearer {token}"
         }
 
-
     payload = {
         "originDestinations": [
             {
@@ -70,7 +68,7 @@ def get_flight_info(origin, destination, departure_date, adults):
     response=requests.post(flight_search_url, headers=headers, json=payload)
 
     # Initialize an empty string for the output
-    formatted_output = ""
+    flight_info = []
 
     if response.status_code == 200:
         data = response.json()
@@ -78,6 +76,9 @@ def get_flight_info(origin, destination, departure_date, adults):
         if data["data"] and len(data["data"]) > 0:
             # Retrieve all flights
             for flight in data["data"]:
+                formatted_output = ''
+
+
                 # Get the price
                 price = flight["price"]["total"]
                 itinerary = flight["itineraries"][0]
@@ -108,15 +109,22 @@ def get_flight_info(origin, destination, departure_date, adults):
 
                 # Append the price
                 formatted_output += f"Price: €{price}\n\n"
-        else:
-            formatted_output += "No flight offers found\n"
-    elif response.status_code == 400:
-        formatted_output += "Invalid Input\n"
-    else:
-        formatted_output += f"Status Code: {response.status_code}\n"
-        formatted_output += f"Error Details: {response.json()}\n"
 
-    return formatted_output
+                temp_array = [formatted_output]
+                flight_info.append(temp_array)
+        else:
+            flight_info += "No flight offers found\n"
+    elif response.status_code == 400:
+        input_error = "Invalid Input\n"
+        return input_error
+    else:
+        error= f"Status Code: {response.status_code}\n"
+        error += f"Error Details: {response.json()}\n"
+        return error
+
+    return flight_info
+
+
 
 
 
