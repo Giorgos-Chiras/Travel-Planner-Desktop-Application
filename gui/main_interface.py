@@ -4,9 +4,11 @@ import sv_ttk
 import darkdetect
 
 from api_clients.flight_search_api import get_flight_info
+from api_clients.amadeus_conenction import authorize_connection
 from dark_titlebar import apply_theme_to_titlebar
-from data_coversions.fligth_conversions import flight_code_to_name
+from data_coversions.fligth_conversions import *
 from styles.styles import apply_styles
+
 
 class travel_planner_app(tk.Tk):
     def __init__(self):
@@ -40,54 +42,95 @@ class travel_planner_app(tk.Tk):
 
 
 class InputPage(tk.Frame):
-    def __init__(self, parent, controller):
-        """Interface for page where user enters input"""
-        super().__init__(parent)
-        self.controller = controller
+        def __init__(self, parent, controller):
+            """Interface for page where user enters input"""
+            super().__init__(parent)
+            self.controller = controller
+
+            # Configure grid layout for the parent frame
+            self.grid_rowconfigure(0, weight=1)
+            self.grid_columnconfigure(0, weight=1)
+
+            # Create a wrapper frame to center all widgets
+            frame = ttk.Frame(self, padding=20)
+            frame.grid(row=0, column=0, sticky="nsew")
+
+            # Configure grid layout for the frame
+            frame.grid_rowconfigure(tuple(range(10)), weight=1)
+            frame.grid_columnconfigure(0, weight=1)
+
+            # Label for Origin
+            label_origin = ttk.Label(frame, text="Origin", anchor="center")
+            label_origin.grid(row=0, column=0, pady=10)
+
+            # Entry for Origin
+            self.departure = ttk.Entry(frame, justify="center")
+            self.departure.grid(row=1, column=0, pady=5)
+
+            # Label for Destination
+            label_dest = ttk.Label(frame, text="Destination", anchor="center")
+            label_dest.grid(row=2, column=0, pady=10)
+
+            # Entry for Destination
+            self.destination = ttk.Entry(frame, justify="center")
+            self.destination.grid(row=3, column=0, pady=5)
+
+            # Label for Departure Date
+            departure_date_label = ttk.Label(frame, text="Departure Date", anchor="center")
+            departure_date_label.grid(row=4, column=0, pady=10)
+
+            # Entry for Departure Date
+            self.departure_date = ttk.Entry(frame, justify="center")
+            self.departure_date.grid(row=5, column=0, pady=5)
+
+            # Label for Return Date
+            return_date_label = ttk.Label(frame, text="Return Date", anchor="center")
+            return_date_label.grid(row=6, column=0, pady=10)
+
+            # Entry for Return Date
+            self.return_date = ttk.Entry(frame, justify="center")
+            self.return_date.grid(row=7, column=0, pady=5)
+
+            # Label for Return Date
+            adults_label = ttk.Label(frame, text="Number of Adults", anchor="center")
+            adults_label.grid(row=8, column=0, pady=10)
+
+            # Entry for Number of Adults
+            self.adults = ttk.Spinbox(frame,from_=1, to=10,state='readonly', justify="center")
+            self.adults.grid(row=9, column=0, pady=5)
 
 
-        # Create a wrapper frame to center all widgets
-        frame = ttk.Frame(self)
-        frame.grid(row=1, column=100, sticky='nsew')
 
-        # Label for Origin
-        label_origin = ttk.Label(frame, text="Origin")
-        label_origin.grid(row=2, column=10,padx=300, sticky="nsew")
+            # Update shared data
+            self.controller.shared_data["departure"] = self.departure.get()
+            self.controller.shared_data["destination"] = self.destination.get()
+            self.controller.shared_data["departure_date"] = self.departure_date.get()
+            self.controller.shared_data["return_date"] = self.return_date.get()
+            self.controller.shared_data["adults"] = self.adults.get()
 
-        # Entry for Origin
-        self.departure = ttk.Entry(frame, style="TEntry")
-        self.departure.grid(row=4, column=5,padx=100, sticky="nsew")
+            # Button
+            retrieve_button = ttk.Button(
+                frame,
+                text="Retrieve Flight Offers",
+                command=self.retrieve_flight_offers
+            )
+            retrieve_button.grid(row=10, column=0, pady=20)
 
-        # Label for Destination
-        label_dest = ttk.Label(frame, text="Destination")
-        label_dest.grid(row=6, column=10,padx=300, sticky="nsew")
+        def retrieve_flight_offers(self):
+            """Retrieves information from shared data"""
+            departure_info = self.departure.get()
+            destination_info = self.destination.get()
+            departure_date = self.departure_date.get()
+            return_date = self.return_date.get()
+            adults=self.adults.get()
 
-        # Entry for Destination
-        self.destination = ttk.Entry(frame,style="TEntry")
-        self.destination.grid(row=20, column=5, sticky="nsew")
+            self.controller.shared_data['departure'] = departure_info
+            self.controller.shared_data['destination'] = destination_info
+            self.controller.shared_data['departure_date'] = departure_date
+            self.controller.shared_data['return_date'] = return_date
+            self.controller.shared_data['adults']=int(adults)
 
-        self.controller.shared_data["departure"]=self.departure.get()
-        self.controller.shared_data["destination"]=self.destination.get()
-
-        # Button
-        ttk.Button(
-            frame,
-            text="Retrieve Flight Offers",
-            width=20,
-            command=self.retrieve_flight_offers,
-            style="TButton",
-        ).grid(row=25, column=5,pady=10,padx=100,sticky="nsew")
-
-    def retrieve_flight_offers(self):
-        """Retrieves information from shared data"""
-        departure_info = self.departure.get()
-        destination_info = self.destination.get()
-
-        self.controller.shared_data['departure'] = departure_info
-        self.controller.shared_data['destination'] = destination_info
-
-        self.controller.show_page(FlightOfferPage)
-
+            self.controller.show_page(FlightOfferPage)
 
 class FlightOfferPage(tk.Frame):
     """Interface for page where Flight Offers are displayed."""
@@ -95,8 +138,11 @@ class FlightOfferPage(tk.Frame):
         super().__init__(parent)
         self.controller=controller
 
-        self.route_label = ttk.Label(self, text="Your route text")
+        self.route_label = ttk.Label(self, text=" ")
         self.route_label.grid(row=0,column=0,pady=10)
+
+        self.date_label = ttk.Label(self, text=" ")
+        self.date_label.grid(row=1,column=0,pady=10)
 
         self.flights_text = tk.Text(
             self,
@@ -111,7 +157,6 @@ class FlightOfferPage(tk.Frame):
 
         self.flights_text.grid(row=10, column=0, pady=10,padx=40)
 
-
         ttk.Button(
             self,
             text="Go Back",
@@ -120,11 +165,20 @@ class FlightOfferPage(tk.Frame):
 
     def tkraise(self,*args, **kwargs):
         """Overload tkraise function to retrieve shared data"""
+
+        #Get shared data
         origin=self.controller.shared_data.get("departure")
         destination=self.controller.shared_data.get("destination")
-        flight_info=get_flight_info(origin,destination,"2025-04-10",1)
+        departure_date=self.controller.shared_data.get("departure_date")
+        return_date=self.controller.shared_data.get("return_date")
+        adults=self.controller.shared_data.get("adults")
 
-        self.route_label.config(text=f"Flights from {flight_code_to_name(origin)} to {flight_code_to_name(destination)}")
+        flight_info=get_flight_info(origin,destination,departure_date,adults)
+
+        self.route_label.config(text=f"Flights from {flight_code_to_city(origin)} to {flight_code_to_city(destination)}")
+        self.date_label.config(text=f"From {departure_date} to {return_date} for {adults} adults")
+
+        #Check whether we returned list or string
         if not isinstance(flight_info, list):
             self.flights_text.insert("1.0",flight_info)
         else:

@@ -1,35 +1,7 @@
 import requests
 from decouple import config
-from data_coversions.fligth_conversions import flight_code_to_name
-
-#Connects to the API and returns token
-def authorize_connection():
-
-    client_id=config("FLIGHT_API_KEY")
-    client_secret=config("FLIGHT_API_SECRET")
-    token_url=config("FLIGHT_SEARCH_TOKEN_URL")
-
-    headers={
-        "Content-Type": "application/x-www-form-urlencoded"
-    }
-
-    data={
-        "grant_type": "client_credentials",
-        "client_id": client_id,
-        "client_secret": client_secret
-    }
-
-
-    response=requests.post(token_url, headers=headers, data=data)
-
-    #Check if connection is successful
-    if response.status_code == 200:
-        token=response.json()["access_token"]
-        return token
-
-    return None
-
-
+from data_coversions.fligth_conversions import flight_code_to_airport
+from api_clients.amadeus_conenction import authorize_connection
 #Retruns the offers for flights
 def get_flight_info(origin, destination, departure_date, adults):
 
@@ -92,8 +64,8 @@ def get_flight_info(origin, destination, departure_date, adults):
                 # Process each flight segment
                 for segment in itinerary["segments"]:
                     # Retrieve flight information
-                    origin = flight_code_to_name(segment["departure"]["iataCode"])
-                    destination = flight_code_to_name(segment["arrival"]["iataCode"])
+                    origin = flight_code_to_airport(segment["departure"]["iataCode"])
+                    destination = flight_code_to_airport(segment["arrival"]["iataCode"])
                     direction = f"{origin} -> {destination}"
                     flight_number = segment["carrierCode"] + segment["number"]
 
@@ -114,9 +86,11 @@ def get_flight_info(origin, destination, departure_date, adults):
                 flight_info.append(temp_array)
         else:
             flight_info += "No flight offers found\n"
+
     elif response.status_code == 400:
         input_error = "Invalid Input\n"
         return input_error
+
     else:
         error= f"Status Code: {response.status_code}\n"
         error += f"Error Details: {response.json()}\n"
