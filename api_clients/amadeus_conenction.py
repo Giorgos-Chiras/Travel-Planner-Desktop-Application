@@ -18,7 +18,6 @@ def authorize_connection():
         "client_secret": client_secret
     }
 
-
     response=requests.post(token_url, headers=headers, data=data)
 
     #Check if connection is successful

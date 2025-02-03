@@ -4,7 +4,6 @@ import sv_ttk
 import darkdetect
 
 from api_clients.flight_search_api import get_flight_info
-from api_clients.amadeus_conenction import authorize_connection
 from dark_titlebar import apply_theme_to_titlebar
 from data_coversions.fligth_conversions import *
 from styles.styles import apply_styles
@@ -99,8 +98,6 @@ class InputPage(tk.Frame):
             self.adults = ttk.Spinbox(frame,from_=1, to=10,state='readonly', justify="center")
             self.adults.grid(row=9, column=0, pady=5)
 
-
-
             # Update shared data
             self.controller.shared_data["departure"] = self.departure.get()
             self.controller.shared_data["destination"] = self.destination.get()
@@ -144,18 +141,15 @@ class FlightOfferPage(tk.Frame):
         self.date_label = ttk.Label(self, text=" ")
         self.date_label.grid(row=1,column=0,pady=10)
 
-        self.flights_text = tk.Text(
-            self,
-            font=("Helvetica", 16),
-            borderwidth=5,
-            width=110,
-            height=10,
-            wrap="word",
-            bg="#2E2E2E",
-            relief="raised",
-        )
+        columns = ("Flight Number", "Origin", "Destination", "Departure", "Arrival", "Price")
+        self.flights_table = ttk.Treeview(self, columns=columns, show="headings", style="Treeview")
 
-        self.flights_text.grid(row=10, column=0, pady=10,padx=40)
+        # Define column headers
+        for col in columns:
+            self.flights_table.heading(col, text=col)
+            self.flights_table.column(col, width=120)
+
+        self.flights_table.grid(row=2, column=0, columnspan=2, padx=20, pady=10, sticky="nsew")
 
         ttk.Button(
             self,
@@ -173,20 +167,27 @@ class FlightOfferPage(tk.Frame):
         return_date=self.controller.shared_data.get("return_date")
         adults=self.controller.shared_data.get("adults")
 
-        flight_info=get_flight_info(origin,destination,departure_date,adults)
+        flights=get_flight_info(origin,destination,departure_date,adults)
 
         self.route_label.config(text=f"Flights from {flight_code_to_city(origin)} to {flight_code_to_city(destination)}")
         self.date_label.config(text=f"From {departure_date} to {return_date} for {adults} adults")
 
         #Check whether we returned list or string
-        if not isinstance(flight_info, list):
-            self.flights_text.insert("1.0",flight_info)
-        else:
-            for flight in flight_info:
-                self.flights_text.insert("1.0",flight)
+        if flights:
+            for flight in flights:
 
-        self.flights_text.configure(state="disabled")
+                flight_number = flight["flight_number"]
+                origin = flight["origin"]
+                destination = flight["destination"]
+                departure = flight["departure"]
+                arrival = flight["arrival"]
+                price = flight["price"]
+
+                self.flights_table.insert("", "end",
+                values=(flight_number, origin, destination, departure, arrival, price))
+
         super().tkraise(*args, **kwargs)
+
 
 if __name__ == "__main__":
     app=travel_planner_app()
